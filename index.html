@@ -1,11 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <link rel="manifest" href="manifest.json">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>⏰ Study Shift Alarm</title>
+  <title>✍️ Study Shift Alarm</title>
   <style>
     body {
       background: linear-gradient(to bottom, #fdfbfb, #ebedee);
@@ -13,12 +12,7 @@
       text-align: center;
       padding: 40px;
     }
-
-    h1 {
-      font-size: 2em;
-      margin-bottom: 20px;
-    }
-
+    h1 { font-size: 2em; margin-bottom: 20px; }
     .alarm-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -26,7 +20,6 @@
       max-width: 900px;
       margin: auto;
     }
-
     .time-box {
       border-radius: 12px;
       padding: 15px 20px;
@@ -34,38 +27,16 @@
       font-weight: bold;
       transition: 0.3s;
     }
-
-    .start {
-      background-color: #e0f7fa;
-      color: #006064;
-    }
-
-    .end {
-      background-color: #fff3e0;
-      color: #e65100;
-    }
-
-    .break {
-      background-color: #e8f5e9;
-      color: #2e7d32;
-    }
-
-    .ringing {
-      border: 2px solid red;
-      animation: pulse 1s infinite;
-    }
-
-    .expired {
-      opacity: 0.4;
-      text-decoration: line-through;
-    }
-
+    .start { background-color: #e0f7fa; color: #006064; }
+    .end { background-color: #fff3e0; color: #e65100; }
+    .break { background-color: #e8f5e9; color: #2e7d32; }
+    .ringing { border: 2px solid red; animation: pulse 1s infinite; }
+    .expired { opacity: 0.4; text-decoration: line-through; }
     @keyframes pulse {
       0% { transform: scale(1); }
       50% { transform: scale(1.03); }
       100% { transform: scale(1); }
     }
-
     button {
       margin-top: 25px;
       padding: 10px 20px;
@@ -76,55 +47,41 @@
       background-color: #5cb85c;
       color: white;
       cursor: pointer;
-      transition: 0.2s;
     }
-
-    button:hover {
-      background-color: #4cae4c;
-    }
+    button:hover { background-color: #4cae4c; }
   </style>
 </head>
 <body>
-
-  <h1>📚 <img src="https://cdn-icons-png.flaticon.com/512/3064/3064197.png" width="30"/> Study Shift Alarm</h1>
-
+  <h1>✍️ Study Shift Alarm</h1>
   <div class="alarm-grid" id="alarms"></div>
-
   <button onclick="stopAlarm()">🔕 Stop Alarm</button>
-  <button onclick="requestNotificationPermission()">🔔 Enable Notifications</button>
+  <button id="toggleNotifyBtn" onclick="toggleNotifications()">🔔 Enable Notifications</button>
 
   <audio id="start-sound" src="https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg" preload="auto"></audio>
   <audio id="end-sound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
 
   <script>
     const schedule = [
-      { time: "09:00", type: "start" },
-      { time: "09:25", type: "end" },
-      { time: "09:30", type: "start" },
-      { time: "09:55", type: "end" },
-      { time: "10:00", type: "start" },
-      { time: "10:25", type: "end" },
-      { time: "10:30", type: "start" },
-      { time: "10:55", type: "end" },
-      { time: "11:00", type: "break" },
-      { time: "11:25", type: "break" },
-      { time: "11:30", type: "start" },
-      { time: "11:55", type: "end" },
-      { time: "12:00", type: "start" },
-      { time: "12:25", type: "end" },
-      { time: "12:30", type: "start" },
-      { time: "12:55", type: "end" }
+      { time: "09:00", type: "start" }, { time: "09:25", type: "end" },
+      { time: "09:30", type: "start" }, { time: "09:55", type: "end" },
+      { time: "10:00", type: "start" }, { time: "10:25", type: "end" },
+      { time: "10:30", type: "start" }, { time: "10:55", type: "end" },
+      { time: "11:00", type: "break" }, { time: "11:25", type: "break" },
+      { time: "11:30", type: "start" }, { time: "11:55", type: "end" },
+      { time: "12:00", type: "start" }, { time: "12:25", type: "end" },
+      { time: "12:30", type: "start" }, { time: "12:55", type: "end" }
     ];
 
     const alarmsContainer = document.getElementById("alarms");
     const startSound = document.getElementById("start-sound");
     const endSound = document.getElementById("end-sound");
+    const toggleBtn = document.getElementById("toggleNotifyBtn");
     let triggered = {};
+    let notificationsEnabled = false;
 
     schedule.forEach(alarm => {
       const div = document.createElement("div");
-      let typeClass = alarm.type;
-      if (alarm.type === 'break') typeClass = 'break';
+      let typeClass = alarm.type === 'break' ? 'break' : alarm.type;
       div.className = `time-box ${typeClass}`;
       div.id = `alarm-${alarm.time.replace(":", "-")}`;
       div.innerText = `${alarm.time} - ${alarm.type.toUpperCase()}`;
@@ -133,20 +90,22 @@
     });
 
     function notify(title, message) {
-      if (Notification.permission === "granted") {
+      if (notificationsEnabled && Notification.permission === "granted") {
         new Notification(title, { body: message });
       }
     }
 
-    function requestNotificationPermission() {
-      if (Notification.permission !== "granted") {
+    function toggleNotifications() {
+      if (!notificationsEnabled) {
         Notification.requestPermission().then(permission => {
           if (permission === "granted") {
-            alert("✅ Notifications enabled!");
+            notificationsEnabled = true;
+            toggleBtn.innerText = "🚫 Disable Notifications";
           }
         });
       } else {
-        alert("✅ Notifications already enabled.");
+        notificationsEnabled = false;
+        toggleBtn.innerText = "🔔 Enable Notifications";
       }
     }
 
@@ -173,10 +132,10 @@
 
           if (alarm.type === "start") {
             startSound.play();
-            notify("Start Studying 📖", `⏰ It's ${alarm.time} - Time to focus!`);
+            notify("Start Studying 📖", `⏰ ${alarm.time} - Time to focus!`);
           } else if (alarm.type === "end") {
             endSound.play();
-            notify("Break Time ☕", `⏰ It's ${alarm.time} - Take a break!`);
+            notify("Break Time ☕", `⏰ ${alarm.time} - Take a break!`);
           } else {
             notify("🧘 Break Time", `⏰ ${alarm.time}`);
           }
@@ -187,25 +146,16 @@
     }, 1000);
 
     function stopAlarm() {
-      startSound.pause();
-      endSound.pause();
-      startSound.currentTime = 0;
-      endSound.currentTime = 0;
+      startSound.pause(); endSound.pause();
+      startSound.currentTime = 0; endSound.currentTime = 0;
     }
 
-    if ("Notification" in window && Notification.permission !== "granted") {
-      setTimeout(() => {
-        requestNotificationPermission();
-      }, 2000);
-    }
-
-    setInterval(markExpired, 60000);
-  
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js')
         .then(() => console.log('Service Worker Registered'));
     }
-</script>
 
+    setInterval(markExpired, 60000);
+  </script>
 </body>
 </html>
