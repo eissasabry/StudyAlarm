@@ -1,14 +1,19 @@
 {
   "name": "Study Shift Alarm",
   "short_name": "StudyAlarm",
-  "start_url": "./index.html",
+  "start_url": "./study-alarm-pwa.html",
   "display": "standalone",
   "background_color": "#f5f5f5",
   "theme_color": "#2196f3",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Emoji_u270d.svg/512px-Emoji_u270d.svg.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/3064/3064197.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3064/3064197.png",
       "sizes": "512x512",
       "type": "image/png"
     }
