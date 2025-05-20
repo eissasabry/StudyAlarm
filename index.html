@@ -285,11 +285,13 @@ function saveToSheet() {
   const rows = document.querySelectorAll("#table-body tr");
   const eventId = document.getElementById("eventSelect").value;
 
-  const data = Array.from(rows).map((row, index) => ({
-    TimeStamp: row.children[2].textContent,
-    NationalID: row.children[1].textContent,
-    EventID: parseInt(eventId)
-  }));
+  const data = Array.from(rows).map((row, index) => {
+    return {
+      TimeStamp: row.children[2].textContent,
+      NationalID: row.children[1].textContent,
+      EventID: parseInt(eventId)
+    };
+  });
 
   if (data.length === 0) {
     alert("⚠️ لا يوجد بيانات للحفظ!");
