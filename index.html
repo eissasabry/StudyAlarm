@@ -285,38 +285,37 @@ function saveToSheet() {
   const rows = document.querySelectorAll("#table-body tr");
   const eventId = document.getElementById("eventSelect").value;
 
-  const data = Array.from(rows).map((row) => {
-    return {
-      TimeStamp: row.children[2].textContent,
-      NationalID: row.children[1].textContent,
-      EventID: parseInt(eventId)
-    };
-  });
-
-  if (data.length === 0) {
+  if (rows.length === 0) {
     alert("⚠️ لا يوجد بيانات للحفظ!");
     return;
   }
 
-  fetch("https://script.google.com/macros/s/AKfycbzalAVC0YM4mENCEJi2WEggXYh0kxjvS952tGg4ZV4mMExeKgObrTr3m-nN03E-rKgg/exec", {
-    method: "POST",
-    body: JSON.stringify(data),
-    headers: {
-      "Content-Type": "application/json"
-    }
-  })
-  .then(response => response.text())
-  .then(responseText => {
-    if (responseText.trim() === "OK") {
-      alert("✅ تم حفظ بيانات الحضور بنجاح في Google Sheets");
-    } else {
-      alert("❌ حدث خطأ أثناء الحفظ: " + responseText);
-    }
-  })
-  .catch(error => {
-    console.error("Save error:", error);
-    alert("❌ فشل الاتصال بـ Google Apps Script");
+  rows.forEach((row, index) => {
+    const name = row.children[0].textContent;
+    const nid = row.children[1].textContent;
+    const time = row.children[2].textContent;
+
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("nid", nid);
+    formData.append("time", time);
+    formData.append("event", eventId);
+
+    fetch("https://script.google.com/macros/s/AKfycbzalAVC0YM4mENCEJi2WEggXYh0kxjvS952tGg4ZV4mMExeKgObrTr3m-nN03E-rKgg/exec", {
+      method: "POST",
+      body: formData
+    })
+    .then(res => res.text())
+    .then(response => {
+      console.log("✅ تم حفظ صف:", name);
+    })
+    .catch(error => {
+      console.error("❌ خطأ في حفظ الصف:", error);
+      alert("فشل الاتصال بـ Google Apps Script");
+    });
   });
+
+  alert("✅ تم إرسال جميع الصفوف بنجاح");
 }
 </script>
 
