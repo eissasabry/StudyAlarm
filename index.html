@@ -1,161 +1,281 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
-  <link rel="manifest" href="manifest.json">
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>✍️ Study Shift Alarm</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR - حضور فعالية</title>
   <style>
+    html { font-family: 'Segoe UI', sans-serif; }
     body {
-      background: linear-gradient(to bottom, #fdfbfb, #ebedee);
       font-family: 'Segoe UI', sans-serif;
+      font-size: 16px;
+      background: linear-gradient(135deg, #e0eafc, #cfdef3);
+      color: #222;
+    } font-feature-settings: 'lnum'; direction: rtl; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 16px;
+      background: linear-gradient(135deg, #e0eafc, #cfdef3);
+      color: #222;
+    }
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      background-image: linear-gradient(to right, #c3cfe2, #f5f7fa);
+      margin: 0;
+      padding: 2rem;
+      color: #333;
+    }
+    h1 {
       text-align: center;
-      padding: 40px;
+      margin-bottom: 1rem;
     }
-    h1 { font-size: 2em; margin-bottom: 20px; }
-    .alarm-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      max-width: 900px;
-      margin: auto;
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
     }
-    .time-box {
-      border-radius: 12px;
-      padding: 15px 20px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      font-weight: bold;
-      transition: 0.3s;
+    @media (min-width: 768px) {
+      .container {
+        flex-direction: row;
+        justify-content: space-between;
+      }
     }
-    .start { background-color: #e0f7fa; color: #006064; }
-    .end { background-color: #fff3e0; color: #e65100; }
-    .break { background-color: #e8f5e9; color: #2e7d32; }
-    .ringing { border: 2px solid red; animation: pulse 1s infinite; }
-    .expired { opacity: 0.4; text-decoration: line-through; }
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.03); }
-      100% { transform: scale(1); }
+    video {
+      border: 5px solid #2c3e50;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 480px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 600px;
+      background-color: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ccc;
+      text-align: right;
+      font-size: 0.95rem;
+    }
+    th {
+      background-color: #2c3e50;
+      color: white;
+    }
+    tbody tr:nth-child(even) {
+      background-color: #f9f9f9;
     }
     button {
-      margin-top: 25px;
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 6px;
-      margin-right: 10px;
-      background-color: #5cb85c;
+      margin: 1rem 0.5rem;
+      padding: 0.7rem 1.5rem;
+      background-color: #2c3e50;
       color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
       cursor: pointer;
     }
-    button:hover { background-color: #4cae4c; }
+    button:hover {
+      background-color: #1a252f;
+    }
+    .footer {
+      margin-top: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    select {
+      padding: 0.5rem;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
   </style>
 </head>
 <body>
-  <h1>✍️ Study Shift Alarm</h1>
-  <div class="alarm-grid" id="alarms"></div>
-  <button onclick="stopAlarm()">🔕 Stop Alarm</button>
-  <button id="toggleNotifyBtn" onclick="toggleNotifications()">🔔 Enable Notifications</button>
+  <h1>📷 تسجيل حضور فعالية</h1>
+  <div class="container">
+    <div>
+      <video id="video" autoplay></video>
+      <div>
+        <button id="start-btn">تشغيل الكاميرا</button>
+        <button id="stop-btn">إيقاف الكاميرا</button>
+      </div>
+    </div>
+    <div>
+	<p id="attendanceCount" style="margin-top: 1rem; font-weight: bold; font-size: 1.1rem; color: #2c3e50;">
+        عدد الحضور: 0
+      </p>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>الاسم</th>
+            <th>الرقم القومي</th>
+            <th>الوقت</th>
+          </tr>
+        </thead>
+        </tbody>
+      </table>
+      <table>
+      <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
 
-  <audio id="start-sound" src="https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg" preload="auto"></audio>
-  <audio id="end-sound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
+  <div class="footer">
+    <label>🗓️ إدراج الحضور في:</label>
+    <select id="eventSelect">
+      <option value="1">حضور مقر العمل</option>
+      <option value="2">مقرأة الفجر</option>
+      <option value="3">حلقة الماهر بالقرآن</option>
+      <option value="4">ساعة المدارسة</option>
+      <option value="5">مقرأة المساء</option>
+      <option value="6">لقاء العشاء الإيماني</option>
+      <option value="7">الدورة التطبيقية</option>
+    </select>
+  </div>
 
+  <audio id="successBeep" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+  <audio id="duplicateBeep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+
+  <script src="https://unpkg.com/@zxing/library@latest">
+    function updateAttendanceCount() {
+      const count = document.getElementById("table-body").children.length;
+      document.getElementById("attendanceCount").textContent = "عدد الحضور: " + count;
+    }
+    </script>
   <script>
-    const schedule = [
-      { time: "09:00", type: "start" }, { time: "09:25", type: "end" },
-      { time: "09:30", type: "start" }, { time: "09:55", type: "end" },
-      { time: "10:00", type: "start" }, { time: "10:25", type: "end" },
-      { time: "10:30", type: "start" }, { time: "10:55", type: "end" },
-      { time: "11:00", type: "break" }, { time: "11:25", type: "break" },
-      { time: "11:30", type: "start" }, { time: "11:55", type: "end" },
-      { time: "12:00", type: "start" }, { time: "12:25", type: "end" },
-      { time: "12:30", type: "start" }, { time: "12:55", type: "end" }
-    ];
+    const codeReader = new ZXing.BrowserQRCodeReader();
+    const videoElement = document.getElementById('video');
+    const tableBody = document.getElementById('table-body');
+    const scannedIds = new Set();
+    const beep = document.getElementById('successBeep');
+    const duplicateBeep = document.getElementById('duplicateBeep');
 
-    const alarmsContainer = document.getElementById("alarms");
-    const startSound = document.getElementById("start-sound");
-    const endSound = document.getElementById("end-sound");
-    const toggleBtn = document.getElementById("toggleNotifyBtn");
-    let triggered = {};
-    let notificationsEnabled = false;
+    let currentStream = null;
 
-    schedule.forEach(alarm => {
-      const div = document.createElement("div");
-      let typeClass = alarm.type === 'break' ? 'break' : alarm.type;
-      div.className = `time-box ${typeClass}`;
-      div.id = `alarm-${alarm.time.replace(":", "-")}`;
-      div.innerText = `${alarm.time} - ${alarm.type.toUpperCase()}`;
-      alarmsContainer.appendChild(div);
-      triggered[alarm.time] = false;
+    document.getElementById('start-btn').addEventListener('click', () => {
+      codeReader.decodeFromVideoDevice(null, 'video', (result, err) => {
+        if (result) {
+          try {
+            const parsed = JSON.parse(result.text);
+            const nid = parsed.NID || parsed['الرقم القومي'];
+            const name = parsed.Name || parsed['الاسم'] || 'اسم غير معروف';
+
+            if (nid && !scannedIds.has(nid)) {
+              scannedIds.add(nid);
+
+              const row = document.createElement('tr');
+              const nameCell = document.createElement('td');
+              const nidCell = document.createElement('td');
+              const timeCell = document.createElement('td');
+
+              const now = new Date().toLocaleString('ar-EG', {
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+              });
+
+              nameCell.textContent = name;
+              nidCell.textContent = nid;
+              timeCell.textContent = now;
+
+              row.appendChild(nameCell);
+              row.appendChild(nidCell);
+              row.appendChild(timeCell);
+
+              tableBody.insertBefore(row, tableBody.firstChild);
+              beep.play();
+              updateAttendanceCount();
+            } else if (scannedIds.has(nid)) {
+              duplicateBeep.play();
+            }
+          } catch (e) {
+            console.error('Invalid QR content', e);
+          }
+        }
+      }).then((stream) => {
+        currentStream = stream;
+      }).catch(err => console.error(err));
     });
 
-    function notify(title, message) {
-      if (notificationsEnabled && Notification.permission === "granted") {
-        new Notification(title, { body: message });
+    document.getElementById('stop-btn').addEventListener('click', () => {
+      if (currentStream) {
+        const tracks = currentStream.getTracks();
+        tracks.forEach(track => track.stop());
+        currentStream = null;
       }
+      codeReader.reset();
+    });
+  
+    function updateAttendanceCount() {
+      const count = document.getElementById("table-body").children.length;
+      document.getElementById("attendanceCount").textContent = "عدد الحضور: " + count;
     }
+    </script>
 
-    function toggleNotifications() {
-      if (!notificationsEnabled) {
-        Notification.requestPermission().then(permission => {
-          if (permission === "granted") {
-            notificationsEnabled = true;
-            toggleBtn.innerHTML = "🚫 Disable Notifications";
-          }
-        });
-      } else {
-        notificationsEnabled = false;
-        toggleBtn.innerHTML = "🔔 Enable Notifications";
-      }
-    }
+  <div class="footer" style="margin-top: 3rem;">
+    <button onclick="printReport()">🖨️ طباعة كشف حضور اليوم</button>
+  </div>
 
-    function markExpired() {
-      const now = new Date();
-      const current = now.toTimeString().substring(0, 5);
-      schedule.forEach(alarm => {
-        if (alarm.time < current) {
-          const box = document.getElementById(`alarm-${alarm.time.replace(":", "-")}`);
-          box.classList.add("expired");
-        }
+  <div id="printArea" style="display:none; padding:2rem; font-family:'Segoe UI', sans-serif; direction:rtl;">
+    <h2 id="reportTitle"></h2>
+    <table style="width:100%; border-collapse: collapse; margin-top: 1rem; font-family: 'Segoe UI', sans-serif; box-shadow: 0 0 10px rgba(0,0,0,0.15);">
+      <thead>
+        <tr style="background:#2c3e50; color:white;">
+          <th style="padding:12px; border:1px solid #aaa; background-color:#34495e; color:white;">م</th>
+          <th style="padding:12px; border:1px solid #aaa; background-color:#34495e; color:white;">الاسم</th>
+          <th style="padding:12px; border:1px solid #aaa; background-color:#34495e; color:white;">موعد الحضور</th>
+        </tr>
+      </thead>
+      <tbody id="printTable"></tbody>
+    </table>
+  </div>
+
+  <script>
+    function printReport() {
+      const eventSelect = document.getElementById("eventSelect");
+      const selectedText = eventSelect.options[eventSelect.selectedIndex].text;
+      const date = new Date();
+      const days = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+      const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+      const title = "كشف حضور " + selectedText + " عن يوم " + days[date.getDay()] + ": " + date.getDate() + " " + months[date.getMonth()] + " " + date.getFullYear();
+
+      document.getElementById("reportTitle").textContent = title;
+
+      const tableBody = document.getElementById("table-body");
+      const printBody = document.getElementById("printTable");
+      printBody.innerHTML = "";
+
+      const rows = tableBody.querySelectorAll("tr");
+      rows.forEach((row, index) => {
+        const name = row.children[0].textContent;
+        const time = row.children[2].textContent;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="padding:10px; border:1px solid #ccc; font-family: Tahoma, sans-serif; direction: ltr; text-align: center;">${index + 1}</td>
+          <td style="padding:10px; border:1px solid #ccc; font-family: Tahoma, sans-serif; direction: ltr; text-align: center;">${name}</td>
+          <td style="padding:10px; border:1px solid #ccc; font-family: Tahoma, sans-serif; direction: ltr; text-align: center;">${time}</td>
+        `;
+        printBody.appendChild(tr);
       });
+
+      const printContents = document.getElementById("printArea").innerHTML;
+      const originalContents = document.body.innerHTML;
+      document.body.innerHTML = printContents;
+      window.print();
+      document.body.innerHTML = originalContents;
+      location.reload();
     }
-
-    setInterval(() => {
-      const now = new Date();
-      const currentTime = now.toTimeString().substring(0, 5);
-      markExpired();
-
-      schedule.forEach(alarm => {
-        if (alarm.time === currentTime && !triggered[alarm.time]) {
-          const box = document.getElementById(`alarm-${alarm.time.replace(":", "-")}`);
-          box.classList.add("ringing");
-
-          if (alarm.type === "start") {
-            startSound.play();
-            notify("Start Studying 📖", `⏰ ${alarm.time} - Time to focus!`);
-          } else if (alarm.type === "end") {
-            endSound.play();
-            notify("Break Time ☕", `⏰ ${alarm.time} - Take a break!`);
-          } else {
-            notify("🧘 Break Time", `⏰ ${alarm.time}`);
-          }
-
-          triggered[alarm.time] = true;
-        }
-      });
-    }, 1000);
-
-    function stopAlarm() {
-      startSound.pause(); endSound.pause();
-      startSound.currentTime = 0; endSound.currentTime = 0;
+  
+    function updateAttendanceCount() {
+      const count = document.getElementById("table-body").children.length;
+      document.getElementById("attendanceCount").textContent = "عدد الحضور: " + count;
     }
+    </script>
 
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(() => console.log('Service Worker Registered'));
-    }
-
-    setInterval(markExpired, 60000);
-  </script>
 </body>
 </html>
