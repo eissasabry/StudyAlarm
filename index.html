@@ -291,30 +291,35 @@ function saveToSheet() {
     return;
   }
 
-  let allData = [];
+  let successCount = 0;
 
-  rows.forEach((row) => {
+  rows.forEach((row, index) => {
     const name = row.children[0].textContent;
     const nid = row.children[1].textContent;
     const time = row.children[2].textContent;
-    allData.push({ name, nid, time, event: eventId });
-  });
 
-  fetch("https://script.google.com/macros/s/AKfycbzalAVC0YM4mENCEJi2WEggXYh0kxjvS952tGg4ZV4mMExeKgObrTr3m-nN03E-rKgg/exec", {
-    method: "POST",
-    body: JSON.stringify(allData),
-    headers: {
-      "Content-Type": "application/json"
-    }
-  })
-  .then(res => res.text())
-  .then(response => {
-    console.log("✅ Google response:", response);
-    alert("✅ تم حفظ كل الحضور بنجاح");
-  })
-  .catch(error => {
-    console.error("❌ فشل الاتصال:", error);
-    alert("❌ فشل الاتصال بـ Google Apps Script");
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("nid", nid);
+    formData.append("time", time);
+    formData.append("event", eventId);
+
+    fetch("https://script.google.com/macros/s/AKfycbzalAVC0YM4mENCEJi2WEggXYh0kxjvS952tGg4ZV4mMExeKgObrTr3m-nN03E-rKgg/exec", {
+      method: "POST",
+      body: formData
+    })
+    .then(res => res.text())
+    .then(response => {
+      console.log("✅ صف محفوظ:", name);
+      successCount++;
+      if (successCount === rows.length) {
+        alert("✅ تم حفظ كل الحضور بنجاح");
+      }
+    })
+    .catch(error => {
+      console.error("❌ خطأ أثناء حفظ الصف:", name, error);
+      alert("❌ فشل الاتصال بـ Google Apps Script أثناء الحفظ");
+    });
   });
 }
 
