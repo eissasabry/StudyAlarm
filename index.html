@@ -300,17 +300,17 @@ function saveToSheet() {
     allData.push({ name, nid, time, event: eventId });
   });
 
-  const formData = new FormData();
-  formData.append("data", JSON.stringify(allData));
-
   fetch("https://script.google.com/macros/s/AKfycbzalAVC0YM4mENCEJi2WEggXYh0kxjvS952tGg4ZV4mMExeKgObrTr3m-nN03E-rKgg/exec", {
     method: "POST",
-    body: formData
+    body: JSON.stringify(allData),
+    headers: {
+      "Content-Type": "application/json"
+    }
   })
   .then(res => res.text())
   .then(response => {
-    console.log("Google Sheet response:", response);
-    alert("✅ تم حفظ جميع البيانات في Google Sheet");
+    console.log("✅ Google response:", response);
+    alert("✅ تم حفظ كل الحضور بنجاح");
   })
   .catch(error => {
     console.error("❌ فشل الاتصال:", error);
