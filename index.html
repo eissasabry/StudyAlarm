@@ -285,7 +285,7 @@ function saveToSheet() {
   const rows = document.querySelectorAll("#table-body tr");
   const eventId = document.getElementById("eventSelect").value;
 
-  const data = Array.from(rows).map((row, index) => {
+  const data = Array.from(rows).map((row) => {
     return {
       TimeStamp: row.children[2].textContent,
       NationalID: row.children[1].textContent,
@@ -305,18 +305,18 @@ function saveToSheet() {
       "Content-Type": "application/json"
     }
   })
-    .then(res => res.text())
-    .then(response => {
-      if (response.trim() === "OK") {
-        alert("✅ تم حفظ بيانات الحضور بنجاح في Google Sheets");
-      } else {
-        alert("❌ حدث خطأ أثناء الحفظ: " + response);
-      }
-    })
-    .catch(err => {
-      console.error("Save error:", err);
-      alert("❌ فشل الاتصال بـ Google Apps Script");
-    });
+  .then(response => response.text())
+  .then(responseText => {
+    if (responseText.trim() === "OK") {
+      alert("✅ تم حفظ بيانات الحضور بنجاح في Google Sheets");
+    } else {
+      alert("❌ حدث خطأ أثناء الحفظ: " + responseText);
+    }
+  })
+  .catch(error => {
+    console.error("Save error:", error);
+    alert("❌ فشل الاتصال بـ Google Apps Script");
+  });
 }
 </script>
 
