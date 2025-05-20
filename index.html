@@ -220,6 +220,7 @@
   <div class="footer" style="margin-top: 3rem;">
     <button onclick="printReport()">🖨️ طباعة كشف حضور اليوم</button>
   <button onclick="saveToSheet()">📤 حفظ إلى Google Sheet</button>
+  <button onclick="clearAll()">🗑️ حذف كل الحضور</button>
 
   </div>
 
@@ -290,32 +291,43 @@ function saveToSheet() {
     return;
   }
 
-  rows.forEach((row, index) => {
+  let allData = [];
+
+  rows.forEach((row) => {
     const name = row.children[0].textContent;
     const nid = row.children[1].textContent;
     const time = row.children[2].textContent;
-
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("nid", nid);
-    formData.append("time", time);
-    formData.append("event", eventId);
-
-    fetch("https://script.google.com/macros/s/AKfycbzalAVC0YM4mENCEJi2WEggXYh0kxjvS952tGg4ZV4mMExeKgObrTr3m-nN03E-rKgg/exec", {
-      method: "POST",
-      body: formData
-    })
-    .then(res => res.text())
-    .then(response => {
-      console.log("✅ تم حفظ صف:", name);
-    })
-    .catch(error => {
-      console.error("❌ خطأ في حفظ الصف:", error);
-      alert("فشل الاتصال بـ Google Apps Script");
-    });
+    allData.push({ name, nid, time, event: eventId });
   });
 
-  alert("✅ تم إرسال جميع الصفوف بنجاح");
+  const formData = new FormData();
+  formData.append("data", JSON.stringify(allData));
+
+  fetch("https://script.google.com/macros/s/AKfycbzalAVC0YM4mENCEJi2WEggXYh0kxjvS952tGg4ZV4mMExeKgObrTr3m-nN03E-rKgg/exec", {
+    method: "POST",
+    body: formData
+  })
+  .then(res => res.text())
+  .then(response => {
+    console.log("Google Sheet response:", response);
+    alert("✅ تم حفظ جميع البيانات في Google Sheet");
+  })
+  .catch(error => {
+    console.error("❌ فشل الاتصال:", error);
+    alert("❌ فشل الاتصال بـ Google Apps Script");
+  });
+}
+
+function clearAll() {
+  if (confirm("هل أنت متأكد أنك تريد حذف كل الحضور الحالي؟")) {
+    const tableBody = document.getElementById("table-body");
+    tableBody.innerHTML = "";
+    if (typeof scannedIds !== 'undefined') {
+      scannedIds.clear();
+    }
+    updateAttendanceCount();
+    alert("✅ تم حذف جميع الحضور بنجاح");
+  }
 }
 </script>
 
